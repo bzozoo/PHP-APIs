@@ -41,12 +41,19 @@ class DB {
 	function insertAllToTable($tablename, $users) {
 		$dbh = $this->CONN();
 		if ($dbh) {
-			$sql = "INSERT INTO " . $tablename . " (Name, Email, age) VALUES (?, ?, ?)";
+			$sql = "INSERT INTO " . $tablename . " (Name, Email, age) VALUES ";
+			$placeholders = array_fill(0, count($users), "(?, ?, ?)");
+			$sql .= implode(", ", $placeholders);
 			$stmt = $dbh->prepare($sql);
 
+			$params = array();
 			foreach ($users as $user) {
-				$stmt->execute([$user['Name'], $user['Email'], $user['Age']]);
+				$params[] = $user['Name'];
+				$params[] = $user['Email'];
+				$params[] = $user['Age'];
 			}
+
+			$stmt->execute($params);
 		}
 	}
 }
