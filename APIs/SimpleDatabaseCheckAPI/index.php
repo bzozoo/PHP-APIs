@@ -24,14 +24,18 @@ class DB {
 	}
 
 	function queryAllFromTable($tablename) {
-		try {
-			$sth = $this->CONN();
-			$sql = "SELECT * FROM " . $tablename;
-			$sth = $sth->query($sql);
-			return $sth->fetchAll(PDO::FETCH_ASSOC);
-		} catch (PDOException $e) {
-			return (object) ['error' => $e];
+		$sth = $this->CONN();
+		if ($sth) {
+			try {
+				$sql = "SELECT NODEHOST FROM " . $tablename;
+				$sth = $sth->query($sql);
+				return $sth->fetchAll(PDO::FETCH_ASSOC);
+			} catch (PDOException $e) {
+				return ['message' => $e];
+			}
+
 		}
+		return ['message' => "Database connection error"];
 	}
 }
 
@@ -41,7 +45,7 @@ $result = $db->queryAllFromTable('NODEHOST');
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
 
 $data = array(
-	'message' => 'Server is active',
+	'message' => 'Nodetest service is active',
 	'cors' => $origin,
 	'date' => date('Y/m/d H:i:s'),
 	'testvalue' => 'OK1',
