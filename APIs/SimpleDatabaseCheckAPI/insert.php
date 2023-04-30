@@ -38,22 +38,21 @@ class DB {
 		return ['message' => "Database connection error"];
 	}
 
-	function insertAllToTable($tablename, $users) {
+	function insertAllToTable($tablename, $keys, $values) {
 		$dbh = $this->CONN();
 		if ($dbh) {
-			$sql = "INSERT INTO " . $tablename . " (Name, Email, age) VALUES ";
-			$placeholders = array_fill(0, count($users), "(?, ?, ?)");
-			$sql .= implode(", ", $placeholders);
+
+			$placeholders = array_fill(0, count($keys), "?");
+			$sql = "INSERT INTO " . $tablename . " (" . implode(", ", $keys) . ") VALUES ";
+			$sql .= "(" . implode(", ", $placeholders) . ")";
+
 			$stmt = $dbh->prepare($sql);
-
-			$params = array();
-			foreach ($users as $user) {
-				$params[] = $user['Name'];
-				$params[] = $user['Email'];
-				$params[] = $user['Age'];
+			foreach ($values as $value) {
+				$data = array_values($value);
+				if (count($data) === count($keys)) {
+					$stmt->execute($data);
+				}
 			}
-
-			$stmt->execute($params);
 		}
 	}
 }
@@ -68,4 +67,4 @@ $users = array(
 
 //CONTROLLER
 $db = new DB(DBCONFIG());
-$db->insertAllToTable("TestUser", $users);
+$db->insertAllToTable("TestUser", array('Name', 'Email', 'Age'), $users);
