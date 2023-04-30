@@ -38,21 +38,25 @@ class DB {
 		return ['message' => "Database connection error"];
 	}
 
-	function insertAllToTable($tablename, $keys, $values) {
+	function insertAllToTable($tablename, $data) {
 		$dbh = $this->CONN();
 		if ($dbh) {
-
-			$placeholders = array_fill(0, count($keys), "?");
-			$sql = "INSERT INTO " . $tablename . " (" . implode(", ", $keys) . ") VALUES ";
-			$sql .= "(" . implode(", ", $placeholders) . ")";
-
+			$keys = array_keys(reset($data));
+			$sql = "INSERT INTO " . $tablename . " (";
+			$sql .= implode(", ", $keys);
+			$sql .= ") VALUES ";
+			$placeholders = array_fill(0, count($data), "(" . implode(", ", array_fill(0, count($keys), "?")) . ")");
+			$sql .= implode(", ", $placeholders);
 			$stmt = $dbh->prepare($sql);
-			foreach ($values as $value) {
-				$data = array_values($value);
-				if (count($data) === count($keys)) {
-					$stmt->execute($data);
+
+			$params = array();
+			foreach ($data as $row) {
+				foreach ($row as $value) {
+					$params[] = $value;
 				}
 			}
+
+			$stmt->execute($params);
 		}
 	}
 }
@@ -67,4 +71,4 @@ $users = array(
 
 //CONTROLLER
 $db = new DB(DBCONFIG());
-$db->insertAllToTable("TestUser", array('Name', 'Email', 'Age'), $users);
+$db->insertAllToTable("TestUser", $users);
